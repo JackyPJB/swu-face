@@ -1,0 +1,4 @@
+numpy
+pyJWT
+flask_login
+requests
