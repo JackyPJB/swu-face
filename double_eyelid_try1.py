@@ -9,7 +9,7 @@
     @   GitHub  :       https://github.com/JackyPJB
     @   Contact :       pengjianbiao@hotmail.com
 -------------------------------------------------
-    Description :       
+    Description :
 -------------------------------------------------
 """
 import base64
