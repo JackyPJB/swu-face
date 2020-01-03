@@ -23,7 +23,6 @@ def circle_fitness_demo():
     cv.destroyAllWindows()
 
 
-
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -49,7 +48,7 @@ def on_mouse(event, x, y, flags, param):
     #    count=count+1
     #    print("callback_count",count)
     # --------------------------------------------------------------
-
+    print(event)
     if event == cv2.EVENT_LBUTTONDOWN:  # 左键点击
         pointsCount = pointsCount + 1
         # 感觉这里没有用？2018年8月25日20:06:42
@@ -131,10 +130,34 @@ ROI = img.copy()
 cv2.namedWindow('src')
 cv2.setMouseCallback('src', on_mouse)
 cv2.imshow('src', img)
-cv2.waitKey(0)
+_w, _h, _ = img.shape
+l_center = [_w // 2, _h // 2]
+cv2.circle(img, tuple(l_center), 4, (0, 0, 255), 4)
+
+flag = True
+while flag:
+    kk = cv2.waitKeyEx(0)
+    print(type(kk), kk)
+    # left = 2424832
+    if kk == 2424832:
+        l_center[0] -= 1
+    # right = 2555904
+    elif kk == 2555904:
+        l_center[0] += 1
+    # up = 2490369
+    elif kk == 2490368:
+        l_center[1] -= 1
+    # down = 2621440
+    elif kk == 2621440:
+        l_center[1] += 1
+    elif kk in [13, 27, 32]:  # 13 回车 27 EC 32 空格
+        flag = False
+    print(l_center)
+    cv2.circle(img, tuple(l_center), 4, (0, 0, 255), 4)
+    cv2.imshow('src', img)
+cv2.imshow('hhaa', img)
+cv2.waitKeyEx(0)
 cv2.destroyAllWindows()
-
-
 
 
 def mergeImg(inputImg, maskImg, contourData, drawPosition):
@@ -179,7 +202,6 @@ def mergeImg(inputImg, maskImg, contourData, drawPosition):
     outContourData = triangles_list[0]
 
     return outPutImg, outContourData  # ,outRectData
-
 
 # imgStr = single_fold_eyelid
 # imgMaskStr = single_fold_eyelid
