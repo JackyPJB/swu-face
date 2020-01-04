@@ -40,7 +40,8 @@ left_eye = './imgResource/gaussion/left.jpg'
 right_eye = './imgResource/gaussion/right.jpg'
 
 # 在原图中随便找个点，作为起始位置
-img_w, img_h, _ = origin_img.shape
+img_h, img_w, _ = origin_img.shape
+print(origin_img.shape)
 default_center = [img_w // 2, img_h // 2]
 
 
@@ -74,16 +75,25 @@ cv2.NORMAL_CLONE代表融合的模式，可以比较 cv2.NORMAL_CLONE和cv2.MIXE
 '''
 cropped_left = eye_rectangle(left_eye)
 cropped_right = eye_rectangle(right_eye)
-cv2.imshow('cropped_left', cropped_left)
+# cv2.imshow('cropped_left', cropped_left)
 # np.clip 设置矩阵的数值 最大 最小 范围
 mask_left = np.clip(cropped_left, 0, 1) * 255
 mask_right = np.clip(cropped_right, 0, 1) * 255
 
 
+# 输入裁剪的图，和需要放大/缩小的（宽，高）倍数
+def resize_cropped_mask(input_img, w, h):
+    crop_img = cv2.resize(input_img, (0, 0), fx=w, fy=h, interpolation=cv2.INTER_NEAREST)
+    crop_mask = np.clip(crop_img, 0, 1) * 255
+    return crop_img, crop_mask
+
+
 # 编辑眼睛 # 泊松融合，先左眼，再把右眼加进去
-def add_eye(cropped, src_img, mask, center):
-    monochrome_left = cv2.seamlessClone(cropped, src_img, mask, tuple(center), cv2.MONOCHROME_TRANSFER)
-    cv2.imshow('res', monochrome_left)
+def add_eye(src_cropped, src_img, center, w=1, h=1):
+    # w=1,h=1 就是初始，不缩放
+    cropped, mask = resize_cropped_mask(src_cropped, w, h)
+    monochrome_tmp = cv2.seamlessClone(cropped, src_img, mask, tuple(center), cv2.MONOCHROME_TRANSFER)
+    cv2.imshow('res', monochrome_tmp)
     flag = True
     while flag:
         kk = cv2.waitKeyEx(0)
@@ -100,17 +110,42 @@ def add_eye(cropped, src_img, mask, center):
         # down = 2621440
         elif kk == 2621440:
             center[1] += 1
-        elif kk in [13, 27, 32]:  # 13 回车 27 EC 32 空格
+        elif kk in [56, 50, 54, 52, 43, 45]:
+            # 高度缩放 扩大 数字 ’8‘ = 56
+            if kk == 56:
+                h += 0.01
+            # 高度缩放 缩小 数字 ’2‘ = 50
+            elif kk == 50:
+                h -= 0.01
+            # 宽度缩放 扩大 数字 ’6‘ = 54
+            elif kk == 54:
+                w += 0.01
+            # 宽度缩放 缩小 数字 ’4‘ = 52
+            elif kk == 52:
+                w -= 0.01
+            # 整体 扩大 ’+‘ = 43
+            elif kk == 43:
+                w += 0.01
+                h += 0.01
+            # 整体 缩小 ’-‘ = 45
+            elif kk == 45:
+                w -= 0.01
+                h -= 0.01
+            cropped, mask = resize_cropped_mask(src_cropped, w, h)
+        # 确定或者退出
+        elif kk in [13, 27, 32, -1]:  # 13 回车 27 EC 32 空格
             flag = False
-        monochrome_left = cv2.seamlessClone(cropped, src_img, mask, tuple(center), cv2.MONOCHROME_TRANSFER)
-        cv2.imshow('res', monochrome_left)
-    return monochrome_left
+        monochrome_tmp = cv2.seamlessClone(cropped, src_img, mask, tuple(center), cv2.MONOCHROME_TRANSFER)
+        cv2.imshow('res', monochrome_tmp)
+    return monochrome_tmp
 
 
 # 加左眼
-monochrome_left_res = add_eye(cropped_left, origin_img, mask_left, default_center)
+print(default_center)
+monochrome_left_res = add_eye(cropped_left, origin_img, default_center)
+print(default_center)
 # 加右眼
-monochrome_res = add_eye(cropped_right, monochrome_left_res, mask_right, default_center)
+monochrome_res = add_eye(cropped_right, monochrome_left_res, default_center)
 # Write results
 # cv2.imwrite("images/opencv-normal-clone-example.jpg", normal_clone)
 # cv2.imwrite("images/opencv-mixed-clone-example.jpg", mixed_clone)
